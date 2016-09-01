@@ -1,0 +1,166 @@
+#!/usr/bin/env node
+var subarg = require('subarg');
+var xtend = require('xtend');
+var path = require('path');
+var multimatch = require('multimatch');
+var parallel = require('miniq');
+var style = require('ansi-styles');
+var fastlint = require('../index');
+
+var findUp = fastlint.findUp;
+var getWorkingCopy = fastlint.getWorkingCopy;
+var getBetweenCommits = fastlint.getBetweenCommits;
+var filterByStatus = fastlint.filterByStatus;
+var toPaths = fastlint.toPaths;
+
+var argv = xtend({
+  format: 'relative',
+  delimiter: ' ',
+  'working-copy': false,
+  'diff-filter': 'd',
+}, subarg(process.argv.slice(2), {
+    boolean: ['working-copy', 'status', 'print0'],
+}));
+
+if (argv.v || argv.version) {
+  console.log(require('../package.json').version);
+  process.exit();
+}
+
+if (argv.help || argv.h) {
+  console.log(fs.readFileSync(__dirname + '/usage.txt').toString());
+  process.exit();
+}
+
+var cwd = process.cwd();
+
+var gitRoot = argv.gitroot || path.dirname(findUp('.git', {cwd: cwd}));
+
+var files = [];
+var tasks = [];
+
+var fromCommit = argv._[0];
+var toCommit = argv._[1];
+
+// if no params are passed, select the working copy
+if (!fromCommit) {
+  argv['working-copy'] = true;
+}
+
+// normally, require a confirmation to pick up working copy files
+if (argv['working-copy']) {
+  tasks.push(function(onDone) {
+    getWorkingCopy(gitRoot, function(err, results) {
+      files.push.apply(files, results);
+      return onDone(err);
+    })
+  });
+}
+
+
+if (fromCommit) {
+  // assume HEAD ... (commit) if toCommit is not set
+  if (!toCommit) {
+    toCommit = fromCommit;
+    fromCommit = 'HEAD';
+  }
+  if (fromCommit === toCommit && toCommit === 'HEAD') {
+    toCommit = 'HEAD~1';
+  }
+
+  tasks.push(function(onDone) {
+    getBetweenCommits(gitRoot, fromCommit, toCommit, function(err, results) {
+      files.push.apply(files, results);
+      return onDone(err);
+    })
+  });
+}
+
+function pathFormatter(format) {
+  return function(file) {
+    switch (format) {
+      case 'full':
+        // NOP - internally, we use full paths
+        return file;
+        break;
+      case 'gitroot':
+        return path.relative(gitRoot, file);
+        break;
+      default:
+      case 'relative':
+        // make relative
+        return path.relative(cwd, file);
+    }
+  };
+}
+
+function formatFiles(files, glob, format, delimiter) {
+  files = files.slice();
+  if (argv.glob) {
+    files = multimatch(files, argv.glob, {matchBase: true});
+  }
+
+  var delimiter = argv.delimiter.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\r/g, '\r').replace(/\\0/g, '\0');
+  return files.map(pathFormatter(format)).join(delimiter);
+}
+
+var statusMap = {
+  A: style.green.open + 'Added       ' + style.green.close,
+  C: 'Copied      ',
+  D: style.red.open + 'Deleted     ' + style.red.close,
+  M: style.yellow.open + 'Modified    ' + style.yellow.close,
+  R: 'Renamed     ',
+  T: 'Type changed',
+  U: 'Unmerged    ',
+  X: 'Unknown     ',
+  B: 'Broken      ',
+  Q: style.gray.open + 'Not staged  ' + style.gray.close,
+};
+
+function formatStatus(status) {
+  return statusMap[status];
+}
+
+function describeFilters() {
+  var result = [];
+  if (argv['working-copy']) {
+    result.push('  - Selecting files from the working copy');
+  }
+  if (fromCommit && toCommit) {
+    result.push('  - Selecting files from commits between ' + fromCommit + ' and ' + toCommit);
+  }
+  if (argv['diff-filter']) {
+    result.push('  - Filtering out files with git status: ' + argv['diff-filter']);
+  }
+  if (argv['glob']) {
+    result.push('  - Applying globs ' + (Array.isArray(argv['glob']) ? argv['glob'] : [argv['glob']]).join(', '));
+  }
+  return result.join('\n');
+}
+
+parallel(1, tasks, function() {
+  var patterns = [];
+
+  if (argv.print0) {
+    argv.delimiter = '\0';
+  }
+  files = filterByStatus(files, argv['diff-filter']);
+
+  if (argv.status) {
+    if (files.length === 0) {
+      console.error('No files matched!');
+    } else {
+      console.error();
+      console.error(style.underline.open + 'Filters:' + style.underline.close);
+      console.error(describeFilters());
+      console.error();
+      console.error(style.underline.open + 'Selected files:' + style.underline.close);
+      var formatter = pathFormatter(argv.format);
+      files.forEach(function(file) {
+        console.error('  ', formatStatus(file[0]), formatter(file[1]));
+      });
+    }
+  }
+
+  console.log(formatFiles(toPaths(files), argv.glob, argv.format, argv.delimiter));
+});
