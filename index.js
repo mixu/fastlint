@@ -32,6 +32,7 @@ exports.getWorkingCopy = function getWorkingCopy(wd, onDone) {
       return onDone(err);
     }
     var files = stdout.split('\n').filter(Boolean).map(function(line) {
+      line = line.trim();
       var parts = line.split(/\s+/);
       return [parts[0].replace(/\?+/g, 'Q'), path.join(wd, parts[1])];
     });
