@@ -32,6 +32,16 @@ Run `eslint` on all files changed compared to the `origin/master` branch.
 
 Run `eslint` on all `.js` and `.jsx` files in `src/` or `tests/` changed compared to the `origin/master` branch.
 
+## Integrating with package.json
+
+Here is an example of a full integration inside `package.json`, runnable via `npm run-script fastlint`:
+
+```
+  "scripts": {
+    "fastlint": "fastlint --status --print0 --glob '{src,tests}/**/*.{js,jsx}' --glob 'webpack*.js' --working-copy --diff-filter=AM HEAD origin/master | xargs -0 eslint --ext js,jsx || exit 0"
+  },
+```
+
 ## CLI options
 
 ### Filtering
