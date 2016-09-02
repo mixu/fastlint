@@ -96,9 +96,6 @@ function pathFormatter(format) {
 
 function formatFiles(files, glob, format, delimiter) {
   files = files.slice();
-  if (argv.glob) {
-    files = multimatch(files, argv.glob, {matchBase: true});
-  }
 
   var delimiter = argv.delimiter.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\r/g, '\r').replace(/\\0/g, '\0');
   return files.map(pathFormatter(format)).join(delimiter);
@@ -144,21 +141,29 @@ parallel(1, tasks, function() {
   if (argv.print0) {
     argv.delimiter = '\0';
   }
+  if (argv.glob) {
+    files = files.filter(function(file) {
+      // we want globs to be run against relative paths!!
+      var relative = path.relative(cwd, file[1]);
+      return multimatch([relative], argv.glob, {matchBase: true}).length > 0;
+    });
+  }
   files = filterByStatus(files, argv['diff-filter']);
 
   if (argv.status) {
+    console.error();
+    console.error(style.underline.open + '`fastlint` filters:' + style.underline.close);
+    console.error(describeFilters());
+    console.error();
     if (files.length === 0) {
       console.error('No files matched!');
     } else {
-      console.error();
-      console.error(style.underline.open + 'Filters:' + style.underline.close);
-      console.error(describeFilters());
-      console.error();
       console.error(style.underline.open + 'Selected files:' + style.underline.close);
       var formatter = pathFormatter(argv.format);
       files.forEach(function(file) {
         console.error('  ', formatStatus(file[0]), formatter(file[1]));
       });
+      console.error();
     }
   }
 
