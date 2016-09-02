@@ -38,7 +38,7 @@ Run `eslint` on all `.js` and `.jsx` files in `src/` or `tests/` changed compare
 
 `--glob [glob]`. Use a glob to filter the results. Can be specified multiple times. The matching is processed using [multimatch](https://github.com/sindresorhus/multimatch), see their docs for details.
 
-`--no-working-copy`. By default, `fastlint` also includes files in the working copy, e.g. files that have been added/modified but not necessarily staged. Set this flag to only look at committed changes.
+`--working-copy`. `fastlint` can also include files in the working copy, e.g. files that have been added/modified but not necessarily staged. For UX reasons this gets set if you don't pass anything in.
 
 `--diff-filter [(A|C|D|M|R|T|U|X|B|?)]`. Defaults to `--diff-filter d`. Select only files that are Added (A), Copied (C), Deleted (D), Modified (M), Renamed (R), have their type (i.e. regular file, symlink, submodule, …​) changed (T), are Unmerged (U), are Unknown (X), or have had their pairing Broken (B). Any combination of the filter characters (including none) can be used.
 
