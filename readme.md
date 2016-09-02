@@ -2,6 +2,8 @@
 
 Lint faster by only running linters and other tools on files that have recently changed or files that are different from `master` in git.
 
+![](./img/screenshot.png)
+
 ## Installation
 
 ```
