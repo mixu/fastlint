@@ -16,11 +16,11 @@ npm install -g fastlint
 
 Runs `fastlint` and shows the current set of filters (in stderr).
 
-`fastlint --print0 | xargs -0 eslint`
+`fastlint --status --print0 | xargs -0 eslint`
 
 Run `eslint` on all modified files in the working copy.
 
-`fastlint --print0 --working-copy HEAD HEAD~5 | xargs -0 eslint`
+`fastlint --status --print0 --working-copy HEAD HEAD~5 | xargs -0 eslint`
 
 Run `eslint` on all files changed in the working copy and in the last five commits in this branch.
 
@@ -28,9 +28,9 @@ Run `eslint` on all files changed in the working copy and in the last five commi
 
 Run `eslint` on all files changed compared to the `origin/master` branch.
 
-`fastlint --print0 --glob "**/*.js" --glob "**/*.jsx" HEAD origin/master | xargs -0 eslint`
+`fastlint --status --print0 --glob '{src,tests}/**/*.{js,jsx}' HEAD origin/master | xargs -0 eslint`
 
-Run `eslint` on all `.js` and `.jsx` files in the working copy and all files changed compared to the `origin/master` branch.
+Run `eslint` on all `.js` and `.jsx` files in `src/` or `tests/` changed compared to the `origin/master` branch.
 
 ## CLI options
 
