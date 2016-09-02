@@ -17,7 +17,7 @@ var argv = xtend({
   format: 'relative',
   delimiter: ' ',
   'working-copy': false,
-  'diff-filter': 'd',
+  'diff-filter': null,
 }, subarg(process.argv.slice(2), {
     boolean: ['working-copy', 'status', 'print0'],
 }));

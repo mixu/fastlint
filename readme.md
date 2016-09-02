@@ -2,7 +2,7 @@
 
 Lint faster by only running linters and other tools on files that have recently changed or files that are different from `master` in git.
 
-![](./img/screenshot.png)
+![](https://github.com/mixu/fastlint/raw/master/img/screenshot.png)
 
 ## Installation
 
@@ -50,9 +50,11 @@ Here is an example of a full integration inside `package.json`, runnable via `np
 
 `--working-copy`. `fastlint` can also include files in the working copy, e.g. files that have been added/modified but not necessarily staged. For UX reasons this gets set if you don't pass anything in.
 
-`--diff-filter [(A|C|D|M|R|T|U|X|B|?)]`. Defaults to `--diff-filter d`. Select only files that are Added (A), Copied (C), Deleted (D), Modified (M), Renamed (R), have their type (i.e. regular file, symlink, submodule, …​) changed (T), are Unmerged (U), are Unknown (X), or have had their pairing Broken (B). Any combination of the filter characters (including none) can be used.
+`--diff-filter [(A|C|D|M|R|T|U|X|B|?)]`. Select only files that are Added (A), Copied (C), Deleted (D), Modified (M), Renamed (R), have their type (i.e. regular file, symlink, submodule, …​) changed (T), are Unmerged (U), are Unknown (X), or have had their pairing Broken (B). Any combination of the filter characters (including none) can be used.
 
 Also, these upper-case letters can be downcased to exclude. E.g. `--diff-filter=ad` excludes added and deleted paths.
+
+Note that "Deleted" does not necessarily mean the file was deleted - it may refer to the file being only modified by deleting lines.
 
 ### Human friendly status
 
