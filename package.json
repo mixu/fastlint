@@ -1,6 +1,6 @@
 {
   "name": "fastlint",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lint faster by only running linters and other tools on files that have recently changed or files that are different from `master` in git.",
   "main": "index.js",
   "scripts": {
