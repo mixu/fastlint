@@ -135,7 +135,11 @@ function describeFilters() {
   return result.join('\n');
 }
 
-parallel(1, tasks, function() {
+parallel(1, tasks, function(err) {
+  if (err) {
+    throw err;
+  }
+
   var patterns = [];
 
   if (argv.print0) {

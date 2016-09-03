@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
-var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
+var split = require('binary-split');
 
 exports.findUp = function findUp(filename, opts) {
   opts = opts || {};
@@ -27,31 +28,38 @@ exports.findUp = function findUp(filename, opts) {
 
 // Files modified in the working copy
 exports.getWorkingCopy = function getWorkingCopy(wd, onDone) {
-  exec(['git', 'status', '--porcelain', '--untracked-files=all', '--ignore-submodules=all'].join(' '), {cwd: wd}, function(err, stdout, stderr) {
-    if (err) {
-      return onDone(err);
-    }
-    var files = stdout.split('\n').filter(Boolean).map(function(line) {
-      line = line.trim();
-      var parts = line.split(/\s+/);
-      return [parts[0].replace(/\?+/g, 'Q'), path.join(wd, parts[1])];
+  var files = [];
+  spawn('git', ['status', '--porcelain', '--untracked-files=normal', '--ignore-submodules=all'], {cwd: wd})
+    .once('error', onDone)
+    .on('close', function(code) {
+      onDone(null, files);
+    })
+    .stdout.pipe(split())
+    .on('data', function(line) {
+      line = line.toString().trim();
+      if (line.length > 0) {
+        var parts = line.split(/\s+/);
+        files.push([parts[0].replace(/\?+/g, 'Q'), path.join(wd, parts[1])]);
+      }
     });
-    onDone(err, files);
-  });
 };
 
 // Files modified between two commits
 exports.getBetweenCommits = function getBetweenCommits(wd, fromCommit, to, onDone) {
-  exec(['git', 'diff-tree', '-r', '--root', '--no-commit-id', '--name-status', fromCommit, to].join(' '), {cwd: wd}, function(err, stdout, stderr) {
-    if (err) {
-      return onDone(err);
-    }
-    var files = stdout.split('\n').filter(Boolean).map(function(line) {
-      var parts = line.split(/\s+/);
-      return [parts[0].replace(/\?+/g, 'Q'), path.join(wd, parts[1])];
+  var files = [];
+  spawn('git', ['diff-tree', '-r', '--root', '--no-commit-id', '--name-status', fromCommit, to], {cwd: wd})
+    .once('error', onDone)
+    .on('close', function(code) {
+      onDone(null, files);
+    })
+    .stdout.pipe(split())
+    .on('data', function(line) {
+      line = line.toString().trim();
+      if (line.length > 0) {
+        var parts = line.split(/\s+/);
+        files.push([parts[0].replace(/\?+/g, 'Q'), path.join(wd, parts[1])]);
+      }
     });
-    onDone(err, files);
-  });
 };
 
 exports.filterByStatus = function(files, statuses) {

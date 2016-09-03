@@ -13,6 +13,7 @@
   "license": "BSD",
   "dependencies": {
     "ansi-styles": "~2.2.1",
+    "binary-split": "~1.0.3",
     "miniq": "~1.0.0",
     "multimatch": "~2.1.0",
     "subarg": "~1.0.0",
