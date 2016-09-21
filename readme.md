@@ -20,15 +20,15 @@ Runs `fastlint` and shows the current set of filters (in stderr).
 
 Run `eslint` on all modified files in the working copy.
 
-`fastlint --status --print0 --working-copy HEAD HEAD~5 | xargs -0 eslint`
+`fastlint --status --print0 --working-copy HEAD~5 HEAD | xargs -0 eslint`
 
 Run `eslint` on all files changed in the working copy and in the last five commits in this branch.
 
-`fastlint HEAD origin/master | xargs -0 eslint`
+`fastlint origin/master HEAD | xargs -0 eslint`
 
 Run `eslint` on all files changed compared to the `origin/master` branch.
 
-`fastlint --status --print0 --glob '{src,tests}/**/*.{js,jsx}' HEAD origin/master | xargs -0 eslint`
+`fastlint --status --print0 --glob '{src,tests}/**/*.{js,jsx}' origin/master HEAD | xargs -0 eslint`
 
 Run `eslint` on all `.js` and `.jsx` files in `src/` or `tests/` changed compared to the `origin/master` branch.
 
@@ -38,7 +38,7 @@ Here is an example of a full integration inside `package.json`, runnable via `np
 
 ```
   "scripts": {
-    "fastlint": "fastlint --status --print0 --glob '{src,tests}/**/*.{js,jsx}' --glob 'webpack*.js' --working-copy --diff-filter=AM HEAD origin/master | xargs -0 eslint --ext js,jsx || exit 0"
+    "fastlint": "fastlint --status --print0 --glob '{src,tests}/**/*.{js,jsx}' --glob 'webpack*.js' --working-copy --diff-filter=bux origin/master HEAD | xargs -0 eslint --cache --fix --ext js,jsx || exit 0"
   },
 ```
 
