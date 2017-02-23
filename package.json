@@ -10,7 +10,7 @@
     "fastlint": "./bin/fastlint"
   },
   "author": "Mikito Takada <mikito.takada@gmail.com> (http://mixu.net/)",
-  "license": "BSD",
+  "license": "BSD-3-Clause",
   "dependencies": {
     "ansi-styles": "~3.0.0",
     "binary-split": "~1.0.3",
