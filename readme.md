@@ -10,6 +10,10 @@ Lint faster by only running linters and other tools on files that have recently 
 npm install -g fastlint
 ```
 
+## Changelog
+
+- `v1.1.0`: added `--staged` filter, added support for cwd-relative globs.
+
 ## Usage examples
 
 `fastlint --status`
@@ -38,7 +42,7 @@ Here is an example of a full integration inside `package.json`, runnable via `np
 
 ```
   "scripts": {
-    "fastlint": "fastlint --status --print0 --glob '{src,tests}/**/*.{js,jsx}' --glob 'webpack*.js' --working-copy --diff-filter=buxq origin/master HEAD | xargs -0 eslint --cache --fix --ext js,jsx || exit 0"
+    "fastlint": "fastlint --status --print0 --glob '{src,tests}/**/*.{js,jsx}' --glob './webpack*.js' --working-copy --diff-filter=buxq origin/master HEAD | xargs -0 eslint --cache --fix --ext js,jsx || exit 0"
   },
 ```
 
@@ -46,7 +50,7 @@ Here is an example of a full integration inside `package.json`, runnable via `np
 
 ### Filtering
 
-`--glob [glob]`. Use a glob to filter the results. Can be specified multiple times. The matching is processed using [multimatch](https://github.com/sindresorhus/multimatch), see their docs for details.
+`--glob [glob]`. Use a glob to filter the results. Can be specified multiple times. The matching is processed using [multimatch](https://github.com/sindresorhus/multimatch), see their docs for details. You can use `./{glob}` to specify that the glob should match local files (since `v.1.1.0`)
 
 `--working-copy`. `fastlint` can also include files in the working copy, e.g. files that have been added/modified but not necessarily staged. For UX reasons this gets set if you don't pass anything in (because otherwise there would be nothing to show if you don't pass two branches to compare).
 
