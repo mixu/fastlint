@@ -31,9 +31,11 @@ CLI OPTIONS - FILTERING
 
     `--no-working-copy`. By default, `fastlint` also includes files in the working copy, e.g. files that have been added/modified but not necessarily staged. Set this flag to only look at committed changes.
 
-    `--diff-filter [(A|C|D|M|R|T|U|X|B|?)]`. Defaults to `--diff-filter d`. Select only files that are Added (A), Copied (C), Deleted (D), Modified (M), Renamed (R), have their type (i.e. regular file, symlink, submodule, …​) changed (T), are Unmerged (U), are Unknown (X), or have had their pairing Broken (B). Any combination of the filter characters (including none) can be used.
+    `--diff-filter [(A|C|D|M|R|T|U|X|B|Q)]`. Defaults to `--diff-filter d`. Select only files that are Added (A), Copied (C), Deleted (D), Modified (M), Renamed (R), have their type (i.e. regular file, symlink, submodule, …​) changed (T), are Untracked (Q), Unmerged (U), are Unknown (X), or have had their pairing Broken (B). Any combination of the filter characters (including none) can be used.
 
     Also, these upper-case letters can be downcased to exclude. E.g. `--diff-filter=ad` excludes added and deleted paths.
+
+    `--staged`. Filter files by their staging status. Defaults to not applying any filtering. To select unstaged files, use `--no-staged`. This only applies to files in the working copy, since any committed files are considered staged.
 
 CLI OPTIONS - STATUS & FORMATTING
 

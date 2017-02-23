@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 var subarg = require('subarg');
-var xtend = require('xtend');
 var path = require('path');
 var multimatch = require('multimatch');
 var parallel = require('miniq');
@@ -11,16 +10,19 @@ var findUp = fastlint.findUp;
 var getWorkingCopy = fastlint.getWorkingCopy;
 var getBetweenCommits = fastlint.getBetweenCommits;
 var filterByStatus = fastlint.filterByStatus;
+var filterByStaged = fastlint.filterByStaged;
 var toPaths = fastlint.toPaths;
 
-var argv = xtend({
-  format: 'relative',
-  delimiter: ' ',
-  'working-copy': false,
-  'diff-filter': null,
-}, subarg(process.argv.slice(2), {
-    boolean: ['working-copy', 'status', 'print0'],
-}));
+var argv = subarg(process.argv.slice(2), {
+  boolean: ['working-copy', 'status', 'print0', 'staged'],
+  default: {
+    format: 'relative',
+    delimiter: ' ',
+    'working-copy': false,
+    'diff-filter': null,
+    'staged': null,
+  },
+});
 
 if (argv.v || argv.version) {
   console.log(require('../package.json').version);
@@ -101,21 +103,31 @@ function formatFiles(files, glob, format, delimiter) {
   return files.map(pathFormatter(format)).join(delimiter);
 }
 
-var statusMap = {
-  A: style.green.open + 'Added       ' + style.green.close,
-  C: 'Copied      ',
-  D: style.red.open + 'Deleted     ' + style.red.close,
-  M: style.yellow.open + 'Modified    ' + style.yellow.close,
-  R: 'Renamed     ',
-  T: 'Type changed',
-  U: 'Unmerged    ',
-  X: 'Unknown     ',
-  B: 'Broken      ',
-  Q: style.gray.open + 'Not staged  ' + style.gray.close,
-};
-
-function formatStatus(status) {
-  return statusMap[status];
+function formatStatus(status, staged) {
+  var indicator = staged === false ? style.gray.open + 'u' + style.gray.close : ' ';
+  switch (status) {
+    case 'A':
+      return style.green.open + 'Added ' + indicator + '      ' + style.green.close;
+    case 'C':
+      return 'Copied ' + indicator + '     ';
+    case 'D':
+      return style.red.open + 'Deleted ' + indicator + '    ' + style.red.close;
+    case 'M':
+      return style.yellow.open + 'Modified ' + indicator + '   ' + style.yellow.close;
+    case 'R':
+      return 'Renamed ' + indicator + '    ';
+    case 'T':
+      return 'Type changed' + indicator;
+    case 'U':
+      return 'Unmerged ' + indicator + '   ';
+    case 'B':
+      return 'Broken ' + indicator + '     ';
+    case 'Q':
+      return style.gray.open + 'Untracked ' + indicator + '  ' + style.gray.close;
+    case 'X':
+    default:
+      return 'Unknown ' + indicator + '    ';
+  }
 }
 
 function describeFilters() {
@@ -128,6 +140,9 @@ function describeFilters() {
   }
   if (argv['diff-filter']) {
     result.push('  - Filtering out files with git status: ' + argv['diff-filter']);
+  }
+  if (argv['staged'] !== null) {
+    result.push('  - Only selecting files that are ' + (argv['staged'] ? 'staged for commit' : 'unstaged'));
   }
   if (argv['glob']) {
     result.push('  - Applying globs ' + (Array.isArray(argv['glob']) ? argv['glob'] : [argv['glob']]).join(', '));
@@ -148,11 +163,20 @@ parallel(1, tasks, function(err) {
   if (argv.glob) {
     files = files.filter(function(file) {
       // we want globs to be run against relative paths!!
-      var relative = path.relative(cwd, file[1]);
-      return multimatch([relative], argv.glob, {matchBase: true}).length > 0;
+      var relative = path.relative(cwd, file.path);
+      var targets = [relative];
+      if (file.path.substr(0, cwd.length) === cwd) {
+         // support glob expressions relative to ./ by also matching against ./ for files under the cwd
+         targets.push('./' + relative);
+      }
+      return multimatch(targets, argv.glob, {matchBase: true}).length > 0;
     });
   }
   files = filterByStatus(files, argv['diff-filter']);
+
+  if (argv['staged'] !== null) {
+    files = filterByStaged(files, argv['staged']);
+  }
 
   if (argv.status) {
     console.error();
@@ -162,10 +186,18 @@ parallel(1, tasks, function(err) {
     if (files.length === 0) {
       console.error('No files matched!');
     } else {
-      console.error(style.underline.open + 'Selected files:' + style.underline.close);
+      var hasUnstaged = files.some(function(file) {
+        return file.staged === false;
+      });
+      if (hasUnstaged) {
+        console.error(style.underline.open + 'Selected files:' + style.underline.close + style.gray.open + ' u = not staged for commit' + style.gray.close);
+
+      } else {
+        console.error(style.underline.open + 'Selected files:' + style.underline.close);
+      }
       var formatter = pathFormatter(argv.format);
       files.forEach(function(file) {
-        console.error('  ', formatStatus(file[0]), formatter(file[1]));
+        console.error('  ', formatStatus(file.status, file.staged), formatter(file.path));
       });
       console.error();
     }
