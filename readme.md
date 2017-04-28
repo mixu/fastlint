@@ -72,6 +72,8 @@ Imagine you run `git status`. Here's how the output maps to the two filters:
 | "Changes not staged for commit" | q (any, not untracked) | no-staged |
 | "Untracked files"               | Q (untracked)          | no-staged |
 
+For example, if you want all untracked files (only), you'd need `--diff-filter=Q --no-staged` and if you wanted "Changes to be committed", you'd use `--diff-filter=q --staged`.
+
 ### Human friendly status
 
 `--status` logs out the list of selected files to `stderr`.
