@@ -48,11 +48,15 @@ Here is an example of a full integration inside `package.json`, runnable via `np
 
 ## CLI options
 
+Usage: `fastlint [options] [fromCommit] [toCommit]`
+
 ### Filtering
 
 `--glob [glob]`. Use a glob to filter the results. Can be specified multiple times. The matching is processed using [multimatch](https://github.com/sindresorhus/multimatch), see their docs for details. You can use `./{glob}` to specify that the glob should match files relative to the current working directory (since `v.1.1.0`).
 
 `--working-copy`. `fastlint` can also include files in the working copy, e.g. files that have been added/modified but not necessarily staged. For UX reasons this gets set if you don't pass anything in (because otherwise there would be nothing to show if you don't pass two branches to compare).
+
+Without `--working-copy`, you will only get the files that match between the `fromCommit` and `toCommit.`
 
 To only include untracked files, use `--diff-filter=Q`. To only include tracked files, use `--diff-filter=q`.
 
@@ -72,7 +76,7 @@ Imagine you run `git status`. Here's how the output maps to the two filters:
 | "Changes not staged for commit" | q (any, not untracked) | no-staged |
 | "Untracked files"               | Q (untracked)          | no-staged |
 
-For example, if you want all untracked files (only), you'd need `--diff-filter=Q --no-staged` and if you wanted "Changes to be committed", you'd use `--diff-filter=q --staged`.
+For example, if you want all untracked files (only), you'd need `--working-copy --diff-filter=Q --no-staged` and if you wanted "Changes to be committed", you'd use `--working-copy --diff-filter=q --staged`.
 
 ### Human friendly status
 
